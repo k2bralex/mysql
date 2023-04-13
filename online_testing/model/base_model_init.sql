@@ -1,5 +1,5 @@
-DROP SCHEMA IF EXISTS online_testing;
-CREATE SCHEMA online_testing;
+DROP DATABASE IF EXISTS online_testing;
+CREATE DATABASE online_testing;
 
 DROP TABLE IF EXISTS testing;
 DROP TABLE IF EXISTS attempt;
@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS student;
 DROP TABLE IF EXISTS answer;
 DROP TABLE IF EXISTS question;
 DROP TABLE IF EXISTS subject;
+
+USE online_testing;
 
 CREATE TABLE subject
 (
