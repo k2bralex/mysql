@@ -122,3 +122,68 @@ HAVING Количество = (SELECT MAX(sum_amount) AS max_sum_amount
                                     JOIN book b3 on b2.book_id = b3.book_id
                                     JOIN genre g2 on g2.genre_id = b3.genre_id
                            GROUP BY g2.name_genre) AS q1);
+
+
+# Вывести информацию об оплаченных заказах за предыдущий и текущий год, информацию отсортировать
+# по  client_id.
+SELECT buy_id, client_id, book_id, date_payment, amount, price
+FROM buy_archive
+UNION ALL
+SELECT bb.buy_id, b2.client_id, bb.book_id, bs.date_step_end, bb.amount, b.price
+FROM book b
+         JOIN buy_book bb on b.book_id = bb.book_id
+         JOIN buy b2 on b2.buy_id = bb.buy_id
+         JOIN buy_step bs on b2.buy_id = bs.buy_id
+         JOIN step s on bs.step_id = s.step_id
+WHERE bs.date_step_end IS NOT NULL
+  AND s.name_step = 'Оплата'
+ORDER BY client_id;
+
+
+# Сравнить ежемесячную выручку от продажи книг за текущий и предыдущий годы. Для этого
+# вывести год, месяц, сумму выручки в отсортированном сначала по возрастанию месяцев,
+# затем по возрастанию лет виде. Название столбцов: Год, Месяц, Сумма.
+SELECT YEAR(date_payment)      AS Год,
+       MONTHNAME(date_payment) AS Месяц,
+       SUM(amount * price)     AS Сумма
+FROM buy_archive
+GROUP BY Месяц, Год
+UNION ALL
+SELECT YEAR(bs.date_step_end)      AS Год,
+       MONTHNAME(bs.date_step_end) AS Месяц,
+       SUM(bb.amount * b.price)    AS Сумма
+FROM book b
+         JOIN buy_book bb on b.book_id = bb.book_id
+         JOIN buy b2 on b2.buy_id = bb.buy_id
+         JOIN buy_step bs on b2.buy_id = bs.buy_id
+WHERE bs.date_step_end IS NOT NULL
+  AND step_id = 1
+GROUP BY Месяц, Год
+ORDER BY Месяц, Год;
+
+
+# Для каждой отдельной книги необходимо вывести информацию о количестве проданных экземпляров и
+# их стоимости за 2020 и 2019 год . Вычисляемые столбцы назвать Количество и Сумма. Информацию
+# отсортировать по убыванию стоимости.
+SELECT title, SUM(qty) AS Количество, SUM(summ) AS Сумма
+FROM (SELECT b.title,
+             SUM(ba.amount)            AS qty,
+             SUM(ba.amount * ba.price) AS summ
+      FROM buy_archive ba
+               JOIN book b on ba.book_id = b.book_id
+      GROUP BY b.title
+      UNION
+      SELECT b.title,
+             SUM(bb.amount)           AS qty,
+             SUM(bb.amount * b.price) AS summ
+      FROM book b
+               JOIN buy_book bb on b.book_id = bb.book_id
+               JOIN buy b2 on b2.buy_id = bb.buy_id
+               JOIN buy_step bs on b2.buy_id = bs.buy_id
+      WHERE bs.date_step_end IS NOT NULL
+        AND step_id = 1
+      GROUP BY b.title) q1
+GROUP BY title
+ORDER BY Сумма DESC;
+
+
