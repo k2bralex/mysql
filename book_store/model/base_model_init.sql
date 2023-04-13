@@ -87,20 +87,15 @@ CREATE TABLE buy_step
     date_step_end DATE
 );
 
+DROP TABLE IF EXISTS buy_archive;
+
 CREATE TABLE buy_archive
 (
     buy_archive_id INT PRIMARY KEY AUTO_INCREMENT,
     buy_id         INT,
-    FOREIGN KEY (buy_id) REFERENCES buy (buy_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
     client_id      INT,
-    FOREIGN KEY (client_id) REFERENCES client (client_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
     book_id        INT,
-    FOREIGN KEY (book_id) REFERENCES book (book_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
     date_payment   DATE,
     price          DECIMAL(8, 2),
     amount         INT
-
 );
